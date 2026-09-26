@@ -45,6 +45,11 @@ scripts ran, which files changed. From that:
 - `improve <skill>` puts the rule findings with their fixes next to the prompts that
   really reached the skill, the ones a neighbour won, what the agent kept looking up after
   it loaded, the calls that failed there again and again, and how often you stopped it;
+- `improve <skill> --transcripts DIR` cuts the skill's latest loads out of your history,
+  secrets masked, with the skill text that loaded that day, for a model to judge whether
+  each step was followed to the end - the skipped check that no error ever reports. The
+  writing is free; the judging is paid and asked for first
+  ([how](skills/skill-quality-suite/references/judging-sessions.md));
 - `cases --from-history` turns those prompts into a trigger set in your own words;
 - a **mistakes journal** - one four-line note per mistake the agent catches itself making,
   reviewed into rules and gates - feeds both: `improve` lists the entries that name the
@@ -52,7 +57,9 @@ scripts ran, which files changed. From that:
   ([how to keep one](skills/skill-quality-suite/references/mistakes-journal.md)).
 
 The agent running the skill reads that evidence and proposes; nothing is created or
-rewritten without your yes.
+rewritten without your yes. Every proposed edit first passes a bar - would the rule have
+prevented the failure, did the skill not already say it - and most do not; the ones that
+do arrive as a drafted file and its diff.
 
 **Nothing paid starts on its own.** The evaluation half runs an agent and costs money, so
 the skill offers it, says what a run costs (about $0.21 per capped trigger run, measured),
@@ -88,6 +95,7 @@ into the pass so you see whether an edit stole their requests.
 | What should be true of it, and is it? | `cases` |
 | What do people actually type to reach it? | `cases --from-history` |
 | What should I change in it? | `improve` |
+| Was it followed to the end once it loaded? | `improve --transcripts DIR`, then a judge (paid) |
 | Which skill should I fix or write next? | `discover` |
 | Which mistakes keep happening with it? | `improve` with a mistakes journal |
 | Would a new skill just collide with an old one? | `new <name> --seed WORD` |

@@ -55,6 +55,7 @@ edits. The free checks say X. Run it?"
 | Did my last edit break it | `sqs.py eval <skill> --all --save v2`, then `--compare v1 v2` - **paid, ask first** |
 | What do people actually type to reach it | `sqs.py cases <skill> --from-history` - free, reads local transcripts |
 | What should I change in this skill | `sqs.py improve <skill>` - findings with fixes, your requests, your [mistakes journal](references/mistakes-journal.md) |
+| Was it followed to the end | `sqs.py improve <skill> --transcripts <dir>`, then [judging-sessions.md](references/judging-sessions.md) - judging is **paid, ask first** |
 | Which skill to write next, or which one keeps missing | `sqs.py discover` - free, reads local transcripts; then propose from [from-history.md](references/from-history.md) |
 | Switching the gate on over an old tree | `sqs.py baseline create`, then `check --baseline` |
 | One line per layer, for a decision | `sqs.py check <skill> --format board` |
@@ -73,10 +74,9 @@ opt-in.
 
 ## From your history to a proposal
 
-`sqs.py discover` reads which skills' scripts ran while they never loaded, and which work
-repeats with no skill at all; it prints evidence and decides nothing. Turning it into a
-proposal - read the prompts, group, propose, wait for a yes - is in
-[from-history.md](references/from-history.md).
+`discover`, `improve` and `--transcripts` print evidence and decide nothing. Each edit
+passes the bar in [from-history.md](references/from-history.md) first; most fail it, and
+saying why is a result.
 
 ## Reading the report
 
@@ -206,12 +206,6 @@ anything:
 Record *why* in the config next to the entry. A silenced rule with no reason gets
 un-silenced by the next person who reads the file, including you.
 
-## Editing this suite
-
-Changing a rule, a harness or the evaluation layer of this suite itself: read
-[editing-this-suite.md](references/editing-this-suite.md) first - the audit, the
-golden corpus and the generated pages all have to agree before a change is done.
-
 ## The references
 
 - [creating-a-skill.md](references/creating-a-skill.md) - the order for building a new
@@ -229,12 +223,15 @@ golden corpus and the generated pages all have to agree before a change is done.
 - [publishing.md](references/publishing.md) - the gate before a skill leaves the machine,
   and what the publish module cannot see.
 - [from-history.md](references/from-history.md) - from the user's own sessions to a
-  proposal: which skill to write next, which one keeps missing. Open it before `discover`.
+  proposal, and the bar every edit to a skill passes. Open it before `discover` or any
+  edit.
+- [judging-sessions.md](references/judging-sessions.md) - a skill's loads judged: two
+  verdicts each, then drafts.
 - [mistakes-journal.md](references/mistakes-journal.md) - recording a mistake, reviewing
   the journal into rules and gates, and what `improve` reads from it.
 - [porting.md](references/porting.md) - moving a skill to another harness: read the
   target's own page now, plan against it, write a copy, never the original. Open it before
   changing a skill for a harness it was not written for.
 - [editing-this-suite.md](references/editing-this-suite.md) - the audit, the golden
-  corpus and the generated pages. Open it before changing a rule, a harness or the
-  evaluation layer of this suite itself.
+  corpus and the generated pages, which all have to agree before a change is done. Open
+  it before changing a rule, a harness or the evaluation layer of this suite itself.

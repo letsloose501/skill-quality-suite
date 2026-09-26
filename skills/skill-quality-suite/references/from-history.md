@@ -41,6 +41,39 @@ sessions with no skill loaded, each time to move a deadline or a limit. A branch
 planning skill, or a skill of its own? Say which, and I will write it from the next such
 edit." The first acted on a list; the second names the evidence, the choice and who makes it.
 
+## Before an edit to a skill that exists
+
+Every source of a proposed change - a failed call in `improve`, a lookup repeated across
+sessions, a mistakes-journal entry, a load judged in
+[judging-sessions.md](judging-sessions.md) - passes this bar first. Adapted from Warp's
+skill-doctor guide (MIT). Propose an edit only when all four hold:
+
+- the failure comes from a missing, wrong or underspecified instruction **in this skill**,
+  not in a `CLAUDE.md`, a hook, the harness, or the code the skill calls;
+- you can name the one reusable rule the skill should have stated, and the part of it
+  that owns that rule;
+- had the rule been there and followed, this failure would not have happened;
+- it shows in two or more sessions, or once but proves a missing contract: a protective
+  rule, lost work.
+
+And propose nothing when:
+
+- **the skill already required it and the agent ignored it.** A louder sentence will be
+  ignored the same way. Once is noise; repeated, the step moves out of prose into a
+  script the skill runs or a gate - the ladder in
+  [mistakes-journal.md](mistakes-journal.md);
+- the same request with the same tools went differently once: model variance;
+- the only edit available restates the instruction, hedges it, or adds an example from
+  these very sessions - a patch for today's case, not a rule;
+- the real fix is outside the skill: a bug in its script, the harness, another file.
+
+When nothing passes, say so group by group, with the reason each one failed the bar. An
+empty proposal backed like that is a result; a speculative edit is worse than none,
+because it grows the skill for every future load. Prefer replacing a passage to adding
+one, and draft before editing: the proposed file and its diff, as in
+[judging-sessions.md](judging-sessions.md#3-from-verdicts-to-edits), and the real file
+only after a yes.
+
 ## What the two readings count, and what they cannot see
 
 - **Scripts run while the skill never loaded** (`discover` section 1, `improve` section 2):

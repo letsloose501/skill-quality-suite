@@ -362,6 +362,7 @@ def unit_checks():
     out += ranking_checks()
     out += journal_checks()
     out += failure_checks()
+    out += transcripts_checks()
     out += work_checks()
     out += discover_checks()
     out += noise_checks()
@@ -1158,6 +1159,89 @@ def work_checks():
     for key, (got, expected) in want.items():
         if got != expected:
             out.append(f"work_after_load {key}: {got!r}, expected {expected!r}")
+    return out
+
+
+def transcripts_checks():
+    """`improve --transcripts` against sessions built so each rule is crossed once.
+
+    A load by `Skill` call and one by typed `/command` must both be cut out; a load in a
+    session that edited the skill must not. The arguments Claude Code appends to the
+    injected skill text go to the request, so one SKILL.md stays one version; a different
+    text is a second version, not the current one. The load ends at the person's next
+    message, which is kept; the load's own receipt and another skill's work are not in it.
+    A secret in a call is masked. `limit` keeps the newest.
+    """
+    from core import Skill
+    from evaluation import transcripts
+    skill = Skill(os.path.join(FIXTURES, "restated-cases", "statement-check"))
+    n = [0]
+
+    def call(tool, result="ok", error=False, **inp):
+        n[0] += 1
+        r = {"type": "tool_result", "tool_use_id": f"t{n[0]}", "content": result}
+        if error:
+            r["is_error"] = True
+        return [{"type": "assistant", "timestamp": f"2026-09-0{min(n[0], 9)}T00:00:00Z",
+                 "message": {"id": f"m{n[0]}", "content": [
+                     {"type": "tool_use", "id": f"t{n[0]}", "name": tool, "input": inp}]}},
+                {"type": "user", "message": {"content": [r]}}]
+
+    def say(text, **kw):
+        return [dict({"type": "user", "message": {"content": text}}, **kw)]
+
+    def body(text):
+        return say("Base directory for this skill: /s/statement-check\n\n" + text, isMeta=True)
+
+    a = (say("reconcile the march export")
+         + call("Skill", result="Launching skill: statement-check", skill="statement-check")
+         + body(skill.body + "\n\nARGUMENTS: march, the bank csv")
+         + call("Bash", result="Exit code 2 no such file", error=True,
+                command="python check.py --key sk-ant-" + "a" * 30)
+         + [{"type": "assistant", "message": {"content": [{"type": "text", "text": "Done."}]}}]
+         + say("and the check?")
+         + call("Skill", skill="other-skill") + call("Bash", command="python other.py"))
+    b = ([{"type": "user", "timestamp": "2026-09-20T00:00:00Z", "message": {"content":
+           "<command-name>/statement-check</command-name><command-args>april</command-args>"}}]
+         + body("An older text of the skill.") + call("Read", file_path="april.csv")
+         + call("Skill", skill="other-skill") + call("Bash", command="python other2.py"))
+    building = (say("tidy it") + call("Skill", skill="statement-check")
+                + call("Edit", file_path="/h/.claude/skills/statement-check/SKILL.md"))
+    out = []
+    with tempfile.TemporaryDirectory() as tmp:
+        proj = os.path.join(tmp, "history", "p")
+        os.makedirs(proj)
+        for name, recs in (("a.jsonl", a), ("b.jsonl", b), ("c.jsonl", building)):
+            with open(os.path.join(proj, name), "w", encoding="utf-8") as f:
+                for r in recs:
+                    f.write(json.dumps(r) + "\n")
+        hist = os.path.join(tmp, "history")
+        got = transcripts.collect(skill, hist)
+        newest = transcripts.collect(skill, hist, limit=1)
+        written = transcripts.write(got, os.path.join(tmp, "out"))
+        with open(os.path.join(written["dir"], "index.json"), encoding="utf-8") as f:
+            index = json.load(f)
+    by = {x["session"]: x for x in got["loads"]}
+    la, lb = by.get("a", {}), by.get("b", {})
+    kinds = [k for k, _ in la.get("entries", [])]
+    text = " ".join(t for _, t in la.get("entries", []) + lb.get("entries", []))
+    want = {
+        "found": ((got["found"], got["skipped_building"]), (2, 1)),
+        "versions": (sorted(v["same_as_current"] for v in got["versions"].values()),
+                     [False, True]),
+        "args": (la.get("args"), "march, the bank csv"),
+        "prompts": ((la.get("prompt"), lb.get("prompt")),
+                    ("reconcile the march export", "april")),
+        "reaction": ((la.get("reaction"), lb.get("reaction")), ("and the check?", None)),
+        "entries": (kinds, ["call", "error", "agent"]),
+        "masked": ("sk-ant-" in text or "[redacted]" not in text, False),
+        "other skill": ("other.py" in text or "other2.py" in text or "Launching" in text, False),
+        "newest": ([x["session"] for x in newest["loads"]], ["b"]),
+        "index": ((index["loads_written"], written["files"]), (2, 4)),
+    }
+    for key, (have, expected) in want.items():
+        if have != expected:
+            out.append(f"transcripts {key}: {have!r}, expected {expected!r}")
     return out
 
 
